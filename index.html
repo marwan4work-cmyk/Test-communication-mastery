@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SpeakUp">
+<meta name="theme-color" content="#0a0a12">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Communication Mastery</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a12;--bg2:#11111e;--bg3:#18182a;--card:#1e1e32;--card2:#252540;
+  --accent:#7c5cfc;--accent2:#e040fb;--teal:#00e5c7;--amber:#fbbf24;--red:#f87171;--green:#4ade80;
+  --text:#f0eeff;--text2:#a09cc0;--text3:#5c587a;--border:#2a2740;
+  --grad:linear-gradient(135deg,#7c5cfc,#e040fb);
+  --safe-top:env(safe-area-inset-top);
+  --safe-bottom:env(safe-area-inset-bottom);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'DM Sans',sans-serif;color:var(--text);display:flex;flex-direction:column}
+h1,h2,h3,.big-num,.syne{font-family:'Syne',sans-serif}
+
+/* HEADER */
+.header{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:calc(14px + var(--safe-top)) 16px 14px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--grad);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.logo h1{font-size:16px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo p{font-size:10px;color:var(--text2);margin-top:1px}
+
+/* NAV TABS */
+.nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.nav-tab{flex:1;padding:12px 8px;text-align:center;font-size:11px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:'DM Sans',sans-serif}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PAGES */
+.pages{flex:1;overflow:hidden;position:relative}
+.page{position:absolute;inset:0;overflow-y:auto;padding:16px;display:none;flex-direction:column;gap:14px;padding-bottom:calc(16px + var(--safe-bottom))}
+.page.active{display:flex}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.card-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.stat-card .lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.stat-card .val{font-family:'Syne',sans-serif;font-size:22px;font-weight:700}
+.stat-card .sub{font-size:10px;color:var(--text2);margin-top:2px}
+
+/* LEVEL SELECTOR */
+.level-row{display:flex;gap:8px}
+.level-btn{flex:1;padding:8px 6px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;text-align:center}
+.level-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* TOPIC */
+.topic-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+.topic-card::after{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:var(--grad);opacity:.06;border-radius:50%;filter:blur(20px)}
+.topic-day{font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;font-weight:500;margin-bottom:6px}
+.topic-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:600;line-height:1.3;color:var(--text)}
+.topic-hint{font-size:12px;color:var(--text2);margin-top:6px}
+
+/* RECORDER */
+.recorder{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center}
+.timer-ring{width:110px;height:110px;margin:0 auto 14px}
+.timer-ring svg{width:110px;height:110px}
+.timer-ring circle.bg{fill:none;stroke:var(--border);stroke-width:6}
+.timer-ring circle.prog{fill:none;stroke:var(--accent);stroke-width:6;stroke-linecap:round;stroke-dasharray:311;transform:rotate(-90deg);transform-origin:55px 55px;transition:stroke-dashoffset .5s}
+.timer-num{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;fill:var(--text)}
+
+.mic-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 32px;border-radius:30px;border:none;font-family:'Syne',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;background:var(--grad);color:#fff;width:100%;margin-bottom:10px}
+.mic-btn.recording{background:linear-gradient(135deg,#ef4444,#f97316)}
+.stop-btn{display:none;width:100%;padding:12px;border-radius:30px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;margin-bottom:10px}
+
+.wave{display:flex;gap:4px;align-items:center;justify-content:center;height:28px;margin:8px 0}
+.wave span{display:block;width:4px;border-radius:3px;background:var(--accent);animation:wave-bar .8s ease-in-out infinite}
+.wave span:nth-child(2){animation-delay:.1s}
+.wave span:nth-child(3){animation-delay:.2s}
+.wave span:nth-child(4){animation-delay:.3s}
+.wave span:nth-child(5){animation-delay:.4s}
+.wave span:nth-child(6){animation-delay:.3s}
+.wave span:nth-child(7){animation-delay:.2s}
+
+.transcript-box{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;color:var(--text2);min-height:56px;text-align:left;margin-top:10px;line-height:1.6;max-height:90px;overflow-y:auto}
+.error-msg{display:none;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--red);margin-top:8px;text-align:left}
+.error-msg.show{display:block}
+
+/* FEEDBACK */
+.feedback-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:none;flex-direction:column;gap:14px}
+.feedback-card.show{display:flex}
+.score-row{display:flex;align-items:center;justify-content:space-between}
+.score-big{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.next-btn{padding:12px 20px;border-radius:30px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.fb-section{border-top:1px solid var(--border);padding-top:12px}
+.fb-section-title{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.fb-item{font-size:13px;color:var(--text2);line-height:1.6;padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+.fb-item::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent2);margin-top:6px;flex-shrink:0}
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;margin:3px;font-weight:500}
+.tag.old{background:#2a2740;color:var(--text2)}
+.tag.new{background:rgba(124,92,252,.15);color:#a990ff;border:1px solid rgba(124,92,252,.3)}
+
+/* LOADING */
+.loading-card{display:none;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:14px}
+.loading-card.show{display:flex}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+
+/* PROGRESS PAGE */
+.progress-bar-wrap{background:var(--bg3);border-radius:20px;height:8px;overflow:hidden}
+.progress-bar-fill{height:100%;background:var(--grad);border-radius:20px;transition:width .5s}
+.milestone{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:6px 0}
+.mdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mdot.done{background:var(--green)}
+.mdot.active{background:var(--accent)}
+.mdot.future{background:var(--border)}
+.chart-wrap{position:relative;width:100%}
+.recent-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.recent-item:last-child{border-bottom:none}
+.recent-score{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
+.s-high{color:var(--green)}.s-mid{color:var(--amber)}.s-low{color:var(--red)}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes wave-bar{0%,100%{height:8px}50%{height:20px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🎤</div>
+    <div>
+      <h1>Communication Mastery</h1>
+      <p>90-Day Speaking Journey</p>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--text2)" id="day-badge">Day 1</div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="showPage('practice')">Practice</div>
+  <div class="nav-tab" onclick="showPage('feedback')">Feedback</div>
+  <div class="nav-tab" onclick="showPage('progress')">Progress</div>
+</div>
+
+<div class="pages">
+
+  <!-- PRACTICE PAGE -->
+  <div class="page active" id="page-practice">
+    <div class="level-row">
+      <button class="level-btn active" onclick="setLevel('beginner')">🌱 Beginner</button>
+      <button class="level-btn" onclick="setLevel('intermediate')">🌿 Intermediate</button>
+      <button class="level-btn" onclick="setLevel('expert')">🌳 Expert</button>
+    </div>
+
+    <div class="topic-card">
+      <div class="topic-day" id="topic-day">Day 1 · Beginner</div>
+      <div class="topic-text" id="topic-text">Loading…</div>
+      <div class="topic-hint" id="topic-hint"></div>
+    </div>
+
+    <div class="recorder">
+      <div class="timer-ring">
+        <svg viewBox="0 0 110 110">
+          <circle class="bg" cx="55" cy="55" r="49.5"/>
+          <circle class="prog" id="timer-prog" cx="55" cy="55" r="49.5" stroke-dashoffset="0"/>
+          <text class="timer-num" x="55" y="63" text-anchor="middle" id="timer-disp">1:00</text>
+        </svg>
+      </div>
+      <div class="wave" id="wave-anim" style="display:none">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <button class="mic-btn" id="start-btn" onclick="startRecording()">🎙 Start Speaking</button>
+      <button class="stop-btn" id="stop-btn" onclick="stopRecording()">■ Stop Recording</button>
+      <div class="transcript-box" id="transcript-box" style="display:none"></div>
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+  </div>
+
+  <!-- FEEDBACK PAGE -->
+  <div class="page" id="page-feedback">
+    <div class="loading-card" id="loading-card">
+      <div class="spinner"></div>
+      <div style="font-size:13px;color:var(--text2)">Analyzing your speech…</div>
+    </div>
+
+    <div class="feedback-card" id="feedback-card">
+      <div class="score-row">
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:2px">Your Score</div>
+          <div class="score-big" id="fb-score">—</div>
+        </div>
+        <button class="next-btn" onclick="nextSpeech()">Next Day →</button>
+      </div>
+
+      <div class="fb-section">
+        <div class="fb-section-title">Grammar Corrections</div>
+        <div id="fb-grammar"></div>
+      </div>
+      <div class="fb-section">
+        <div class="fb-section-title">Vocabulary Enhancements</div>
+        <div id="fb-vocab"></div>
+      </div>
+      <div class="fb-section">
+        <div class="fb-section-title">Content Expansion Ideas</div>
+        <div id="fb-content"></div>
+      </div>
+      <div class="fb-section">
+        <div class="fb-section-title">Improvement Points</div>
+        <div id="fb-improve"></div>
+      </div>
+    </div>
+
+    <div id="no-feedback" style="text-align:center;padding:40px 20px;color:var(--text3);font-size:14px">
+      Complete a speech on the Practice tab to see feedback here.
+    </div>
+  </div>
+
+  <!-- PROGRESS PAGE -->
+  <div class="page" id="page-progress">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="lbl">Total Speeches</div><div class="val" id="stat-total">0</div><div class="sub">recorded</div></div>
+      <div class="stat-card"><div class="lbl">Average Score</div><div class="val" id="stat-avg">—</div><div class="sub">out of 100</div></div>
+      <div class="stat-card"><div class="lbl">Vocab Growth</div><div class="val" id="stat-vocab">0%</div><div class="sub">word expansion</div></div>
+      <div class="stat-card"><div class="lbl">Grammar Imp.</div><div class="val" id="stat-grammar">0%</div><div class="sub">error reduction</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">90-Day Journey</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px" id="progress-label">Day 1 of 90</div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:1%"></div></div>
+      <div style="margin-top:14px">
+        <div class="milestone"><div class="mdot active" id="m1"></div>Days 1–30: Beginner</div>
+        <div class="milestone"><div class="mdot future" id="m2"></div>Days 31–60: Intermediate</div>
+        <div class="milestone"><div class="mdot future" id="m3"></div>Days 61–90: Expert</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Score Trend</div>
+      <div class="chart-wrap" style="height:180px"><canvas id="score-chart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Grammar Errors Per Speech</div>
+      <div class="chart-wrap" style="height:140px"><canvas id="grammar-chart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Recent Speeches</div>
+      <div id="recent-list"><div style="font-size:13px;color:var(--text3)">No speeches yet</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const TOPICS = {
+  beginner: [
+    ["My Favorite Hobby","What do you love doing in your free time and why?"],
+    ["A Typical Day","Walk us through your daily routine from morning to night."],
+    ["My Family","Tell us about your family — who they are and what they mean to you."],
+    ["My Hometown","Describe where you grew up and what makes it special."],
+    ["A Childhood Memory","Share a vivid memory from your childhood."],
+    ["My Favorite Food","What's your all-time favorite food and why?"],
+    ["Pets and Animals","Do you have a pet? Which animal would you choose and why?"],
+    ["Weekend Plans","What do you typically do on weekends?"],
+    ["My Best Friend","Describe your best friend and what makes them special."],
+    ["Learning to Cook","Talk about a time you cooked something for the first time."],
+    ["My Morning Routine","Describe your ideal morning from waking up to starting work."],
+    ["Books I Love","Talk about a book that changed or inspired you."],
+    ["A Fun Trip","Describe a trip or vacation you enjoyed."],
+    ["Sports I Play","What sports or physical activities do you enjoy?"],
+    ["My Dream Home","Describe your ideal home in detail."],
+    ["Technology I Use Daily","Which tech tools do you use every day?"],
+    ["Something I'm Proud Of","Share a personal achievement you're proud of."],
+    ["A Skill I Want to Learn","What new skill would you like to learn and why?"],
+    ["Movies I Enjoy","Talk about a movie that moved or entertained you."],
+    ["My Neighborhood","Describe the area where you currently live."],
+    ["A Funny Moment","Share a genuinely funny experience from your life."],
+    ["My Favorite Season","Which season do you prefer and why?"],
+    ["School Days","What was school like for you growing up?"],
+    ["Music in My Life","How does music play a role in your daily life?"],
+    ["A Goal for This Year","What is one goal you're working toward right now?"],
+    ["Helping Someone","Describe a time you helped someone in need."],
+    ["My Favorite Meal","Walk us through your favorite meal — who made it and when."],
+    ["An Embarrassing Moment","Share an embarrassing experience you can laugh about."],
+    ["My Commute","Describe how you get to work or school each day."],
+    ["What Relaxes Me","What activities help you unwind and decompress?"]
+  ],
+  intermediate: [
+    ["Career Goals in 5 Years","Where do you see your career in five years and why?"],
+    ["Work-Life Balance","How do you balance professional demands with personal life?"],
+    ["A Workplace Challenge","Describe a difficult work situation and how you handled it."],
+    ["Social Media's Impact","How has social media changed how people communicate?"],
+    ["Remote Work Culture","What are the advantages and disadvantages of working from home?"],
+    ["Financial Planning","Why is financial literacy important for young adults?"],
+    ["Health and Mental Wellness","How do you maintain your mental and physical health?"],
+    ["Climate Change Today","What actions can individuals take to address climate change?"],
+    ["Gender Equality at Work","How can workplaces become more equitable?"],
+    ["Education Reforms Needed","What changes would improve the modern education system?"],
+    ["Leadership vs Management","What makes a great leader different from a good manager?"],
+    ["Social Responsibility","Do companies have a responsibility beyond making profit?"],
+    ["Negotiating Your Worth","How should you approach a salary negotiation?"],
+    ["Conflict Resolution","How do you effectively resolve conflicts in professional settings?"],
+    ["Digital Privacy","Should governments regulate how companies use personal data?"],
+    ["Cultural Differences at Work","How do you navigate cultural differences in a team?"],
+    ["Networking Authentically","What's the difference between networking and relationship-building?"],
+    ["Urban vs Rural Living","Compare the quality of life in cities versus rural areas."],
+    ["Gig Economy Realities","What are the trade-offs of gig work for modern professionals?"],
+    ["Public Speaking Fear","Why are people afraid to speak publicly and how to overcome it?"],
+    ["News Literacy","How can people distinguish credible news from misinformation?"],
+    ["Immigration and Society","How does immigration shape culture and the economy?"],
+    ["Rising Cost of Living","What factors are driving the high cost of living today?"],
+    ["Mentorship Value","How has a mentor shaped your professional journey?"],
+    ["Emotional Intelligence","Why is EQ as important as IQ in the workplace?"],
+    ["Work Burnout","What causes burnout and how do organizations prevent it?"],
+    ["Productivity Strategies","What habits make high-performers consistently productive?"],
+    ["Personal Branding","Why should professionals invest in building a personal brand?"],
+    ["Team Dynamics","What makes a team truly high-functioning?"],
+    ["Resilience After Failure","Describe how failure can become a springboard for growth."]
+  ],
+  expert: [
+    ["The Nature of Truth","Is there such a thing as objective truth? Defend your view."],
+    ["AI and Human Creativity","Will artificial intelligence replace human creativity?"],
+    ["Democracy Under Strain","What threats does modern democracy face and how are they addressed?"],
+    ["Philosophy of Identity","What makes a person the same individual across time?"],
+    ["Global Power Shifts","How is the global geopolitical order being reshaped?"],
+    ["The Ethics of Surveillance","When, if ever, is mass surveillance ethically justified?"],
+    ["Consciousness and Machines","Can a machine ever be truly conscious? Why or why not?"],
+    ["Inequality and Meritocracy","Is the idea of meritocracy a myth in modern society?"],
+    ["Longevity Science","Should we try to dramatically extend the human lifespan?"],
+    ["The Attention Economy","How does the attention economy reshape human behavior?"],
+    ["Nuclear Deterrence Logic","Is the doctrine of mutually assured destruction rational?"],
+    ["Post-Truth Society","How do we navigate a world where facts seem negotiable?"],
+    ["Decentralized Governance","Could blockchain and DAOs replace traditional institutions?"],
+    ["Colonialism's Long Shadow","How does colonial history still shape global inequality?"],
+    ["The Free Will Debate","Do humans have genuine free will or is it an illusion?"],
+    ["Bioethics and Genetic Editing","Where should we draw the line with genetic engineering?"],
+    ["Universal Basic Income","Would a UBI help or harm society? Argue both sides."],
+    ["Moral Obligations to Future Generations","What do we owe people who don't yet exist?"],
+    ["The Meaning of Work","Is work intrinsically valuable or merely a means to an end?"],
+    ["Algorithmic Bias","How do biases in data perpetuate systemic injustice?"],
+    ["Philosophy of Language","How does language shape the limits of thought?"],
+    ["Nationalism vs Globalism","Is national identity a force for good or division?"],
+    ["The Ethics of Wealth","At what point does wealth accumulation become unethical?"],
+    ["Epistemic Humility","Why is knowing what you don't know a form of intelligence?"],
+    ["Technological Determinism","Does technology shape society, or does society shape technology?"],
+    ["Justice vs Mercy","When should the justice system prioritize rehabilitation over punishment?"],
+    ["Existential Risk","How seriously should humanity take extinction-level risks?"],
+    ["Pluralism in Truth Claims","Can two contradictory claims both be true in different contexts?"],
+    ["Attention and Deep Work","What does the loss of sustained attention mean for civilization?"],
+    ["The Good Life","What does it mean to live a genuinely good life in the modern world?"]
+  ]
+};
+
+let state = JSON.parse(localStorage.getItem('cm_state2') || 'null') || {
+  level:'beginner', day:1, speeches:[], firstErrors:null
+};
+
+let timer=null, timeLeft=60, recognition=null, isRecording=false, transcript='';
+let scoreChart=null, grammarChart=null;
+
+function save(){localStorage.setItem('cm_state2',JSON.stringify(state))}
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  event.target.classList.add('active');
+  if(name==='progress'){updateCharts()}
+}
+
+function setLevel(l){
+  state.level=l;
+  document.querySelectorAll('.level-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['beginner','intermediate','expert'][i]===l);
+  });
+  updateTopic();save();
+}
+
+function updateTopic(){
+  const topics=TOPICS[state.level];
+  const idx=(state.day-1)%topics.length;
+  const [topic,hint]=topics[idx];
+  document.getElementById('topic-day').textContent=`Day ${state.day} · ${state.level.charAt(0).toUpperCase()+state.level.slice(1)}`;
+  document.getElementById('topic-text').textContent=topic;
+  document.getElementById('topic-hint').textContent=hint;
+  document.getElementById('day-badge').textContent=`Day ${state.day}`;
+}
+
+function updateStats(){
+  const sp=state.speeches;
+  document.getElementById('stat-total').textContent=sp.length;
+  if(sp.length){
+    document.getElementById('stat-avg').textContent=Math.round(sp.reduce((s,x)=>s+x.score,0)/sp.length);
+  }
+  if(sp.length>1){
+    const f=sp[0].wordCount||0,l=sp[sp.length-1].wordCount||0;
+    document.getElementById('stat-vocab').textContent=Math.max(0,f>0?Math.min(100,Math.round(((l-f)/f)*100)):0)+'%';
+    const fe=sp[0].errorCount||0,le=sp[sp.length-1].errorCount||0;
+    document.getElementById('stat-grammar').textContent=Math.max(0,fe>0?Math.min(100,Math.round(((fe-le)/fe)*100)):0)+'%';
+  }
+  const pct=(state.day/90)*100;
+  document.getElementById('progress-bar').style.width=Math.min(100,pct)+'%';
+  document.getElementById('progress-label').textContent=`Day ${state.day} of 90`;
+
+  const recent=[...sp].reverse().slice(0,6);
+  const rl=document.getElementById('recent-list');
+  if(!recent.length){rl.innerHTML='<div style="font-size:13px;color:var(--text3)">No speeches yet</div>';return}
+  rl.innerHTML=recent.map(s=>{
+    const c=s.score>=75?'s-high':s.score>=50?'s-mid':'s-low';
+    return `<div class="recent-item"><div><div style="font-weight:500">${s.topic}</div><div style="color:var(--text3);font-size:11px">${s.level} · ${new Date(s.date).toLocaleDateString()}</div></div><div class="recent-score ${c}">${s.score}</div></div>`;
+  }).join('');
+}
+
+function updateCharts(){
+  const sp=state.speeches.slice(-10);
+  const labels=sp.map((_,i)=>'#'+(state.speeches.length-sp.length+i+1));
+  const scores=sp.map(s=>s.score);
+  const errors=sp.map(s=>s.errorCount||0);
+
+  if(scoreChart)scoreChart.destroy();
+  scoreChart=new Chart(document.getElementById('score-chart'),{
+    type:'line',
+    data:{labels,datasets:[{data:scores,borderColor:'#7c5cfc',backgroundColor:'rgba(124,92,252,.12)',fill:true,tension:.4,pointBackgroundColor:'#7c5cfc',pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#5c587a',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},x:{ticks:{color:'#5c587a',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}}}}
+  });
+
+  if(grammarChart)grammarChart.destroy();
+  grammarChart=new Chart(document.getElementById('grammar-chart'),{
+    type:'bar',
+    data:{labels,datasets:[{data:errors,backgroundColor:'rgba(224,64,251,.5)',borderColor:'#e040fb',borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,ticks:{color:'#5c587a',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},x:{ticks:{color:'#5c587a',font:{size:10}},grid:{display:false}}}}
+  });
+}
+
+function startRecording(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showError("Speech recognition not supported. Please use Chrome or Safari on iOS 17+.");return}
+  navigator.mediaDevices.getUserMedia({audio:true}).then(()=>{beginSession()}).catch(()=>{
+    showError("Microphone access denied. Go to Settings → Safari → Microphone and allow access.");
+  });
+}
+
+function showError(msg){
+  const e=document.getElementById('error-msg');e.textContent=msg;e.classList.add('show');
+}
+
+function beginSession(){
+  isRecording=true;transcript='';timeLeft=60;
+  document.getElementById('error-msg').classList.remove('show');
+  document.getElementById('start-btn').style.display='none';
+  document.getElementById('stop-btn').style.display='block';
+  document.getElementById('wave-anim').style.display='flex';
+  document.getElementById('transcript-box').style.display='block';
+  document.getElementById('transcript-box').textContent='Listening…';
+
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-US';
+  recognition.onresult=e=>{
+    let t='';
+    for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
+    transcript+=t;
+    document.getElementById('transcript-box').textContent=transcript||'Listening…';
+  };
+  recognition.onerror=()=>{};
+  recognition.start();
+
+  timer=setInterval(()=>{
+    timeLeft--;
+    const d=Math.floor(timeLeft/60)+':'+(timeLeft%60<10?'0':'')+(timeLeft%60);
+    document.getElementById('timer-disp').textContent=d;
+    const circ=311;
+    document.getElementById('timer-prog').style.strokeDashoffset=circ-(circ*(timeLeft/60));
+    if(timeLeft<=10)document.getElementById('timer-prog').style.stroke='#f87171';
+    if(timeLeft<=0)stopRecording();
+  },1000);
+}
+
+function stopRecording(){
+  if(!isRecording)return;
+  isRecording=false;clearInterval(timer);
+  if(recognition)recognition.stop();
+  document.getElementById('stop-btn').style.display='none';
+  document.getElementById('wave-anim').style.display='none';
+  document.getElementById('timer-prog').style.stroke='var(--accent)';
+  document.getElementById('timer-disp').textContent='1:00';
+  document.getElementById('timer-prog').style.strokeDashoffset='0';
+  timeLeft=60;
+  if(transcript.trim().length<10){
+    document.getElementById('start-btn').style.display='block';
+    showError("Not enough speech detected. Please try again and speak clearly into your mic.");
+    return;
+  }
+  analyzeWithAI();
+}
+
+async function analyzeWithAI(){
+  showPage2('feedback');
+  document.getElementById('no-feedback').style.display='none';
+  document.getElementById('feedback-card').classList.remove('show');
+  document.getElementById('loading-card').classList.add('show');
+
+  const topic=document.getElementById('topic-text').textContent;
+  const words=transcript.trim().split(/\s+/);
+  const wordCount=words.length;
+  const uniqueWords=new Set(words.map(w=>w.toLowerCase().replace(/[^a-z]/g,''))).size;
+  const spokenSeconds=60-timeLeft;
+
+  const prompt=`You are a brutally honest speech coach. Analyze this ${state.level}-level speech on: "${topic}"
+
+Transcript: "${transcript}"
+
+Spoken for ~${Math.max(1,spokenSeconds)} seconds, ${wordCount} words, ${uniqueWords} unique words.
+
+Return ONLY valid JSON (no markdown):
+{"score":<0-100 honest>,"errorCount":<int>,"grammarCorrections":[{"error":"...","correction":"...","explanation":"..."}],"vocabSuggestions":[{"original":"...","alternatives":["...","...","..."]}],"contentIdeas":["...","...","...","..."],"improvementPoints":["...","...","...","..."]}
+
+2-3 grammar corrections, 2-3 vocab suggestions, 4 content ideas, 4 improvement points. Be direct and specific. Level bonus: intermediate +5, expert +10.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const raw=data.content.find(b=>b.type==='text')?.text||'{}';
+    const fb=JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    state.speeches.push({date:new Date().toISOString(),topic,level:state.level,day:state.day,score:fb.score||0,wordCount,uniqueWords,errorCount:fb.errorCount||0});
+    if(state.firstErrors===null)state.firstErrors=fb.errorCount||0;
+    save();
+    showFeedback(fb);
+    updateStats();
+  }catch(e){
+    document.getElementById('loading-card').classList.remove('show');
+    document.getElementById('no-feedback').style.display='block';
+    document.getElementById('no-feedback').textContent='Analysis failed. Please check your connection and try again.';
+    document.getElementById('no-feedback').style.color='var(--red)';
+  }
+}
+
+function showPage2(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',['practice','feedback','progress'][i]===name));
+  document.getElementById('page-'+name).classList.add('active');
+}
+
+function showFeedback(fb){
+  document.getElementById('loading-card').classList.remove('show');
+  document.getElementById('fb-score').textContent=(fb.score||0)+'/100';
+
+  const gc=document.getElementById('fb-grammar');
+  gc.innerHTML=(fb.grammarCorrections||[]).map(g=>`<div class="fb-item"><div><span style="color:var(--red)">${g.error}</span> → <span style="color:var(--green)">${g.correction}</span><br><span style="font-size:12px">${g.explanation}</span></div></div>`).join('')||'<div class="fb-item">No major grammar errors found.</div>';
+
+  const vc=document.getElementById('fb-vocab');
+  vc.innerHTML=(fb.vocabSuggestions||[]).map(v=>`<div style="margin-bottom:8px"><span class="tag old">${v.original}</span>→${(v.alternatives||[]).map(a=>`<span class="tag new">${a}</span>`).join('')}</div>`).join('')||'<div class="fb-item">Good vocabulary.</div>';
+
+  document.getElementById('fb-content').innerHTML=(fb.contentIdeas||[]).map(i=>`<div class="fb-item">${i}</div>`).join('');
+  document.getElementById('fb-improve').innerHTML=(fb.improvementPoints||[]).map(i=>`<div class="fb-item">${i}</div>`).join('');
+
+  document.getElementById('feedback-card').classList.add('show');
+}
+
+function nextSpeech(){
+  state.day=Math.min(90,state.day+1);
+  if(state.day>60)setLevel('expert');
+  else if(state.day>30)setLevel('intermediate');
+  document.getElementById('feedback-card').classList.remove('show');
+  document.getElementById('transcript-box').style.display='none';
+  document.getElementById('start-btn').style.display='block';
+  document.getElementById('no-feedback').style.display='block';
+  document.getElementById('no-feedback').textContent='Complete a speech on the Practice tab to see feedback here.';
+  document.getElementById('no-feedback').style.color='';
+  showPage2('practice');save();
+}
+
+// init
+updateTopic();updateStats();
+document.getElementById('no-feedback').style.display='block';
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
